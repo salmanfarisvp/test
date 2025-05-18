@@ -1,8 +1,7 @@
 name: Deploy Edge App
 description: |
   Manually deploy any edge app to either the staging or production environment.
-  Select the app folder and target environment, and this action will run the
-  appropriate deploy command using the correct manifest and API token.
+  Always uses the latest master branch.
 
 on:
   workflow_dispatch:
@@ -30,8 +29,10 @@ jobs:
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'production' && 'screenly.yml' || 'screenly_qc.yml' }}
 
     steps:
-      - name: Checkout Code
+      - name: Checkout master branch
         uses: actions/checkout@v4
+        with:
+          ref: master
 
       - name: Set API Token
         id: set_token
