@@ -1,4 +1,4 @@
-name: Deploy Edge App v2
+name: Deploy Edge App v3
 description: |
   Manually deploy any edge app to either the staging (QC) or production environment.
   Always uses the latest master branch.
