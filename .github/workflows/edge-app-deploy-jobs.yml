@@ -23,7 +23,7 @@ on:
 jobs:
   deploy-stage:
     if: ${{ inputs.environment == 'stage' }}
-    name: Pushed to QC
+    name: Deploying ${{ inputs.edge_app_name }} - Stage (QC)
     runs-on: ubuntu-latest
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
@@ -44,7 +44,7 @@ jobs:
 
   deploy-production:
     if: ${{ inputs.environment == 'production' }}
-    name: Pushed to Production
+    name: Deploying ${{ inputs.edge_app_name }} - Production
     runs-on: ubuntu-latest
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
