@@ -20,13 +20,13 @@ on:
         required: true
         default: ''
 
-# 🏷️ This will be shown in the Actions run list and run page title
-run-name: Deploying ${{ inputs.edge_app_name }} to ${{ inputs.environment }} by @${{ github.actor }}
+# 🏷️ Clean run title without actor
+run-name: Deploying ${{ inputs.edge_app_name }} to ${{ inputs.environment }}
 
 jobs:
   deploy-stage:
     if: ${{ inputs.environment == 'stage' }}
-    name: Deploying ${{ inputs.edge_app_name }} - Stage (QC)
+    name: Deploy to Stage (QC)
     runs-on: ubuntu-latest
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
@@ -47,7 +47,7 @@ jobs:
 
   deploy-production:
     if: ${{ inputs.environment == 'production' }}
-    name: Deploying ${{ inputs.edge_app_name }} - Production
+    name: Deploy to Production
     runs-on: ubuntu-latest
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
