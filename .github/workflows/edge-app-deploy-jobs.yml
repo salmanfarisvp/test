@@ -24,7 +24,7 @@ run-name: Deploying ${{ inputs.edge_app_name }} to ${{ inputs.environment }}
 
 jobs:
   deploy:
-    name: ${{ inputs.environment == 'production' && 'Deploy to Production' || 'Deploy to Stage' }}
+    name: ${{ inputs.environment == 'production' && 'Deploy to Production' || 'Deploy to Stage and Automated QC' }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
