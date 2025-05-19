@@ -24,7 +24,7 @@ run-name: Deploying ${{ inputs.edge_app_name }} to ${{ inputs.environment }}
 
 jobs:
   deploy:
-    name: Deploy to ${{ inputs.environment == 'production' && 'Production' || 'Stage/QC' }}
+    name: ${{ inputs.environment == 'production' && 'Deploy to Production' || 'Deploy to Stage' }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -37,7 +37,7 @@ jobs:
         with:
           ref: master
 
-      - name: Deploy Edge App
+      - name: Deploy to ${{ inputs.environment }}
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
