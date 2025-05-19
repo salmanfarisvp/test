@@ -1,7 +1,7 @@
+---
+# Manually deploy any edge app to either the staging (QC) or production environment.
+# Always uses the latest master branch.
 name: Deploy Edge App
-description: |
-  Manually deploy any edge app to either the staging (QC) or production environment.
-  Always uses the latest master branch.
 
 on:
   workflow_dispatch:
@@ -20,15 +20,16 @@ on:
         required: true
         default: ''
 
+run-name: Deploying ${{ inputs.edge_app_name }} to ${{ inputs.environment }}
+
 jobs:
-  deploy-stage:
-    if: ${{ inputs.environment == 'stage' }}
-    name: Deploying ${{ inputs.edge_app_name }} - Stage (QC)
+  deploy:
+    name: Deploy to ${{ inputs.environment == 'production' && 'Production' || 'Stage/QC' }}
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
-      MANIFEST_FILE_NAME: screenly_qc.yml
-      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN_AUTOMATED_QC }}
+      MANIFEST_FILE_NAME: ${{ inputs.environment == 'production' && 'screenly.yml' || 'screenly_qc.yml' }}
 
     steps:
       - name: Checkout master branch
@@ -36,29 +37,17 @@ jobs:
         with:
           ref: master
 
-      - name: Deploy Edge App to Stage
+      - name: Deploy Edge App
         uses: screenly/cli@master
         with:
-          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path=${{ env.APP_PATH }} --manifest-file=${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
 
-  deploy-production:
-    if: ${{ inputs.environment == 'production' }}
-    name: Deploying ${{ inputs.edge_app_name }} - Production
-    runs-on: ubuntu-latest
-    env:
-      APP_PATH: edge-apps/${{ inputs.edge_app_name }}
-      MANIFEST_FILE_NAME: screenly.yml
-      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-
-    steps:
-      - name: Checkout master branch
-        uses: actions/checkout@v4
-        with:
-          ref: master
-
-      - name: Deploy Edge App to Production
+      - name: Deploy to Automated QC
+        if: inputs.environment == 'stage'
         uses: screenly/cli@master
         with:
-          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path=${{ env.APP_PATH }} --manifest-file=${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+        env:
+          SCREENLY_ENVIRONMENT: automated-qc
