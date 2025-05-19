@@ -43,11 +43,24 @@ jobs:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path=${{ env.APP_PATH }} --manifest-file=${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
 
+  deploy-automated-qc:
+    name: Deploy to Automated QC
+    needs: deploy
+    if: inputs.environment == 'stage'
+    runs-on: ubuntu-latest
+    environment: automated-qc
+    env:
+      APP_PATH: edge-apps/${{ inputs.edge_app_name }}
+      MANIFEST_FILE_NAME: screenly_qc.yml
+
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
       - name: Deploy to Automated QC
-        if: inputs.environment == 'stage'
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path=${{ env.APP_PATH }} --manifest-file=${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
-        env:
-          SCREENLY_ENVIRONMENT: automated-qc
