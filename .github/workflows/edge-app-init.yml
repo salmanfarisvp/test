@@ -50,7 +50,7 @@ jobs:
       - name: Install yq
         uses: mikefarah/yq@v4
 
-      - name: Create Edge App and Get App ID from Manifest
+      - name: Create Edge App and get APP_ID
         run: |
           echo "📦 Creating app in: $APP_PATH"
           screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
@@ -64,6 +64,11 @@ jobs:
 
           echo "✅ App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+
+      - name: Inject APP_ID into manifest
+        run: |
+          echo "📝 Injecting APP ID into manifest file"
+          yq -i ".id = \"$APP_ID\"" "$APP_PATH/$MANIFEST_FILE_NAME"
 
       - name: Deploy Edge App
         run: |
