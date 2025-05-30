@@ -19,13 +19,20 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || '' }}
 
     steps:
-      - name: Run screen list using Screenly CLI
+      - name: List Screens (stage)
+        if: inputs.environment == 'stage'
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: screen list
         env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_BASE_URL: http://api.screenlyappstage.com/
+
+      - name: List Screens (production)
+        if: inputs.environment == 'production'
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: screen list
