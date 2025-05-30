@@ -40,41 +40,47 @@ jobs:
         with:
           ref: master
 
-      - name: 📦 Create Edge App and extract ID
+      - name: 📥 Download Screenly CLI binary
+        run: |
+          wget -q -O screenly-cli.tar.gz https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
+          tar xfz screenly-cli.tar.gz
+          chmod +x screenly
+          sudo mv screenly /usr/local/bin/screenly
+
+      - name: 🏗 Create Edge App and extract ID
         run: |
           echo "📦 Creating app in: $APP_PATH"
           screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
 
+          MANIFEST_FILE="$APP_PATH/$MANIFEST_FILE_NAME"
           APP_ID=$(yq '.id' "$APP_PATH/instance.yml")
+
           if [ -z "$APP_ID" ]; then
             echo "❌ App ID not found in instance.yml"
             exit 1
           fi
 
           echo "✅ App created with ID: $APP_ID"
-          echo "Injecting App ID into $APP_PATH/$MANIFEST_FILE_NAME"
-          yq -i ".id = \"$APP_ID\"" "$APP_PATH/$MANIFEST_FILE_NAME"
-
-      - name: 🧪 Confirm manifest before deploy
-        run: |
-          echo "📄 $MANIFEST_FILE_NAME contents:"
-          cat "$APP_PATH/$MANIFEST_FILE_NAME"
+          echo "Injecting it into $MANIFEST_FILE"
+          yq -i ".id = \"$APP_ID\"" "$MANIFEST_FILE"
 
       - name: 🚀 Deploy Edge App
         run: screenly edge-app deploy --path="$APP_PATH"
 
-      - name: 🏗 Create Edge App Instance
+      - name: 🧱 Create Edge App Instance
         run: screenly edge-app instance create --path="$APP_PATH"
 
-      - name: ✏️ Set title in instance.yml
+      - name: 🖊 Correct the instance name
         run: |
           sed -i "s/^name: .*/name: ${{ inputs.edge_app_title }}/" "$APP_PATH/instance.yml"
 
-      - name: 🔁 Update Edge App Instance
+      - name: 📦 Update Edge App Instance
         run: screenly edge-app instance update --path="$APP_PATH"
 
-      - name: 🛠 Install yq
-        uses: mikefarah/yq@v4
+      - name: 🧪 Confirm manifest integrity
+        run: |
+          echo "🔍 Manifest content before uploading:"
+          cat "$APP_PATH/$MANIFEST_FILE_NAME"
 
       - name: 📤 Upload Edge App artifacts
         uses: actions/upload-artifact@v4
