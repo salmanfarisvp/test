@@ -28,16 +28,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
-      APP_PATH:              edge-apps/${{ inputs.edge_app_name }}
-      MANIFEST_FILE_NAME:    ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
-      API_BASE_URL:          ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
-      SCREENLY_API_TOKEN:    ${{ secrets.SCREENLY_API_TOKEN }}
+      APP_PATH: edge-apps/${{ inputs.edge_app_name }}
+      MANIFEST_FILE_NAME: ${{ inputs.environment == 'production' && 'screenly.yml' || 'screenly_qc.yml' }}
+      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+      API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
-      - name: Checkout master branch
+      - name: Checkout default branch
         uses: actions/checkout@v4
-        with:
-          ref: master
+
+      - name: Print manifest file before deploy
+        run: cat "${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}"
 
       - name: Create Edge App
         uses: screenly/cli@master
@@ -87,15 +89,7 @@ jobs:
       - name: Upload Edge App artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: edge-app-files
+          name: edge-app-files-${{ inputs.edge_app_name }}-${{ github.run_number }}
           path: |
             ${{ env.APP_PATH }}/instance.yml
             ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
-
-      - name: Print CLI Test Info (Optional)
-        run: |
-          echo "📡 Listing screens from: $API_BASE_URL"
-          ./screenly screen list
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          API_TOKEN:    ${{ env.SCREENLY_API_TOKEN }}
