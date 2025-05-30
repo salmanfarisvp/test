@@ -19,7 +19,7 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-      API_BASE_URL: ${{ inputs.environment == 'stage' && 'http://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
+      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
       - name: Checkout (optional)
