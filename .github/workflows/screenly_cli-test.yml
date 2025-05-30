@@ -1,0 +1,31 @@
+name: List Screens via Screenly CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment to list screens (stage or production)'
+        required: true
+        default: 'stage'
+        type: choice
+        options:
+          - stage
+          - production
+
+jobs:
+  list-screens:
+    name: List Screens from ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+      API_BASE_URL: ${{ inputs.environment == 'stage' && 'http://api.screenlyappstage.com/' || '' }}
+
+    steps:
+      - name: Run screen list using Screenly CLI
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: screen list
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
