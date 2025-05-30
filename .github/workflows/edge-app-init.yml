@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment for initialization (stage or production)'
+        description: 'Target environment (stage or production)'
         required: true
         default: 'stage'
         type: choice
@@ -13,18 +13,16 @@ on:
           - production
 
       edge_app_name:
-        description: 'Folder name of the edge app (under edge-apps/) to initialize'
+        description: 'Edge app folder (under edge-apps/)'
         required: true
-        default: ''
 
       edge_app_title:
-        description: 'Display title of the edge app (used in instance.yml)'
+        description: 'Edge app display name'
         required: true
-        default: ''
 
 jobs:
   deploy:
-    name: Initializing ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
+    name: Initialize ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -35,54 +33,49 @@ jobs:
       API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
-      - name: Checkout master branch
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           ref: master
 
-      - name: 📥 Download Screenly CLI binary
+      - name: 📦 Download CLI binary
         run: |
           wget -q -O screenly-cli.tar.gz https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
-          tar xfz screenly-cli.tar.gz
+          tar -xzf screenly-cli.tar.gz
           chmod +x screenly
           sudo mv screenly /usr/local/bin/screenly
 
-      - name: 🏗 Create Edge App and extract ID
+      - name: 📦 Create Edge App and Inject ID into Manifest
         run: |
           echo "📦 Creating app in: $APP_PATH"
-          screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
-
-          MANIFEST_FILE="$APP_PATH/$MANIFEST_FILE_NAME"
-          APP_ID=$(yq '.id' "$APP_PATH/instance.yml")
+          APP_ID=$(screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH" | tee /dev/stderr | grep -oP 'id: \K\S+')
 
           if [ -z "$APP_ID" ]; then
-            echo "❌ App ID not found in instance.yml"
+            echo "❌ App ID not found in CLI output"
             exit 1
           fi
 
           echo "✅ App created with ID: $APP_ID"
-          echo "Injecting it into $MANIFEST_FILE"
-          yq -i ".id = \"$APP_ID\"" "$MANIFEST_FILE"
+          echo "Injecting into: $MANIFEST_FILE_NAME"
+          yq -i ".id = \"$APP_ID\"" "$APP_PATH/$MANIFEST_FILE_NAME"
 
       - name: 🚀 Deploy Edge App
-        run: screenly edge-app deploy --path="$APP_PATH"
+        run: |
+          screenly edge-app deploy --path="$APP_PATH"
 
-      - name: 🧱 Create Edge App Instance
-        run: screenly edge-app instance create --path="$APP_PATH"
+      - name: 🧪 Create App Instance
+        run: |
+          screenly edge-app instance create --path="$APP_PATH"
 
-      - name: 🖊 Correct the instance name
+      - name: ✏️ Update Instance Name
         run: |
           sed -i "s/^name: .*/name: ${{ inputs.edge_app_title }}/" "$APP_PATH/instance.yml"
 
-      - name: 📦 Update Edge App Instance
-        run: screenly edge-app instance update --path="$APP_PATH"
-
-      - name: 🧪 Confirm manifest integrity
+      - name: 🔁 Update Edge App Instance
         run: |
-          echo "🔍 Manifest content before uploading:"
-          cat "$APP_PATH/$MANIFEST_FILE_NAME"
+          screenly edge-app instance update --path="$APP_PATH"
 
-      - name: 📤 Upload Edge App artifacts
+      - name: 📤 Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: edge-app-files
