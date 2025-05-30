@@ -68,8 +68,11 @@ jobs:
 
       - name: ✍️ Inject App ID into Manifest
         run: |
-          echo "Injecting into: $MANIFEST_FILE_NAME"
-          yq -i ".id = \"$APP_ID\"" "$APP_PATH/$MANIFEST_FILE_NAME"
+          echo "Injecting App ID into: $MANIFEST_FILE_NAME"
+          yq -i '(.id) = strenv(APP_ID)' "$APP_PATH/$MANIFEST_FILE_NAME"
+
+      - name: 🐛 Confirm ID Injection
+        run: cat "$APP_PATH/$MANIFEST_FILE_NAME"
 
       - name: 🚀 Deploy Edge App
         run: |
@@ -89,7 +92,7 @@ jobs:
 
       - name: 🆔 Print Edge App ID
         run: |
-          echo "✅ Edge App ID: $APP_ID"
+          echo "✅ Edge App ID: ${{ env.APP_ID }}"
 
       - name: 📤 Upload Edge App Artifacts
         uses: actions/upload-artifact@v4
