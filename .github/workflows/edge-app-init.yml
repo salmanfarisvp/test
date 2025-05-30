@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment for initialization (stage or production)'
+        description: 'Target environment (stage or production)'
         required: true
         default: 'stage'
         type: choice
@@ -13,18 +13,16 @@ on:
           - production
 
       edge_app_name:
-        description: 'Folder name of the edge app (under edge-apps/) to initialize'
+        description: 'Edge app folder name under edge-apps/'
         required: true
-        default: ''
 
       edge_app_title:
-        description: 'Display title of the edge app (used in instance.yml)'
+        description: 'Display title of the edge app (used in logs)'
         required: true
-        default: ''
 
 jobs:
   deploy:
-    name: Initializing ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
+    name: Init ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -35,27 +33,26 @@ jobs:
       API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
-      - name: ⬇️ Checkout Repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           ref: master
 
-      - name: ⚙️ Install CLI Binary
+      - name: Download Screenly CLI
         run: |
           wget -q -O screenly-cli.tar.gz https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
-          tar -xf screenly-cli.tar.gz
-          sudo mv screenly /usr/local/bin/screenly
-          screenly --version
+          tar xfz screenly-cli.tar.gz
+          chmod +x screenly
+          sudo mv screenly /usr/local/bin/
 
-      - name: 📦 Install yq
-        run: |
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.43.1/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+      - name: Install yq
+        uses: mikefarah/yq@v4
 
-      - name: 🛠 Create Edge App
+      - name: Create Edge App and Capture ID
         run: |
           echo "📦 Creating app in: $APP_PATH"
-          APP_ID=$(screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH" | tee /dev/stderr | grep -oP 'id: \K\S+')
+          RAW_OUTPUT=$(screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH" | tee /dev/stderr)
+          APP_ID=$(echo "$RAW_OUTPUT" | grep -oP 'id: \K\S+' | tr -d '\r')
 
           if [ -z "$APP_ID" ]; then
             echo "❌ App ID not found in CLI output"
@@ -65,31 +62,24 @@ jobs:
           echo "✅ App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
 
-      - name: ✍️ Inject App ID into Manifest
+      - name: Inject App ID into Manifest
         run: |
-          echo "Injecting into: $MANIFEST_FILE_NAME"
+          echo "📝 Injecting App ID into: $APP_PATH/$MANIFEST_FILE_NAME"
           yq -i ".id = \"$APP_ID\"" "$APP_PATH/$MANIFEST_FILE_NAME"
 
-      - name: 🚀 Deploy Edge App
-        run: |
-          screenly edge-app deploy --path="$APP_PATH"
+      - name: Deploy Edge App
+        run: screenly edge-app deploy --path="$APP_PATH"
 
-      - name: 📄 Create Edge App Instance
-        run: |
-          screenly edge-app instance create --path="$APP_PATH"
+      - name: Create Edge App Instance
+        run: screenly edge-app instance create --path="$APP_PATH"
 
-      - name: ✏️ Update Instance Name
-        run: |
-          sed -i "s/^name: .*/name: ${{ inputs.edge_app_title }}/" "$APP_PATH/instance.yml"
+      - name: Update Edge App Instance
+        run: screenly edge-app instance update --path="$APP_PATH"
 
-      - name: 🔁 Update Edge App Instance
-        run: |
-          screenly edge-app instance update --path="$APP_PATH"
-
-      - name: 📤 Upload Edge App Artifacts
+      - name: Upload Edge App artifacts
         uses: actions/upload-artifact@v4
         with:
           name: edge-app-files
           path: |
+            ${{ env.APP_PATH }}/$MANIFEST_FILE_NAME
             ${{ env.APP_PATH }}/instance.yml
-            ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
