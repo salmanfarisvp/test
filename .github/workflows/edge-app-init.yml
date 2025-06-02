@@ -51,19 +51,10 @@ jobs:
 
           screenly --version
 
-      - name: 🔐 Authenticate CLI
-        run: |
-          echo "🔐 Authenticating Screenly CLI"
-          echo "📡 Using API endpoint: $API_BASE_URL"
-          echo "$SCREENLY_API_TOKEN" | screenly login --token
-          echo "✅ CLI authenticated successfully"
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          SCREENLY_API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
-
       - name: 🛠 Create Edge App
         run: |
           echo "📦 Creating Edge App from: $APP_PATH"
+          echo "📡 Using API endpoint: $API_BASE_URL"
           screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
 
           # Get the new APP_ID
@@ -87,6 +78,7 @@ jobs:
       - name: 🚀 Deploy Edge App
         run: |
           echo "🚀 Deploying Edge App with correct APP_ID"
+          echo "📡 Using API endpoint: $API_BASE_URL"
           screenly edge-app deploy --path="$APP_PATH"
           echo "✅ Edge App deployed successfully"
         env:
@@ -96,6 +88,7 @@ jobs:
       - name: 📄 Create Instance
         run: |
           echo "📄 Creating instance for Edge App"
+          echo "📡 Using API endpoint: $API_BASE_URL"
           INSTANCE_ID=$(screenly edge-app instance create --path="$APP_PATH" --json | jq -r '.id')
           echo "✅ Instance created with ID: $INSTANCE_ID"
           echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
@@ -113,6 +106,7 @@ jobs:
       - name: 🔄 Update Instance
         run: |
           echo "🔄 Updating instance with new name"
+          echo "📡 Using API endpoint: $API_BASE_URL"
           screenly edge-app instance update --path="$APP_PATH"
           echo "✅ Instance updated successfully"
         env:
