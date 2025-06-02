@@ -34,7 +34,6 @@ jobs:
       - name: Run `screen list` and print output
         run: |
           echo "📡 Listing screens from: $API_BASE_URL"
-          export API_TOKEN=$SCREENLY_API_TOKEN
           ./screenly screen list
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
@@ -43,7 +42,6 @@ jobs:
       - name: Run `screen list` and print output without export API_TOKEN
         run: |
           echo "📡 Listing screens from: $API_BASE_URL"
-          export API_TOKEN=$SCREENLY_API_TOKEN
           ./screenly screen list
 
       - name: Run `screen edge-app list` and print output without export API_TOKEN
