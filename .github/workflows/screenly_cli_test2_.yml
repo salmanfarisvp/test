@@ -50,3 +50,6 @@ jobs:
         run: |
           echo "📡 Listing screens from: $API_BASE_URL"
           ./screenly edge-app list
+        env:
+          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
