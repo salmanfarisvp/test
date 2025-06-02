@@ -36,15 +36,13 @@ jobs:
     steps:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ⚙️ Install CLI and Dependencies
         run: |
           # Install Screenly CLI
-          wget -q -O screenly-cli.tar.gz https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
-          tar -xf screenly-cli.tar.gz
-          sudo mv screenly /usr/local/bin/screenly
+          wget -q -O screenly-cli https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf screenly-cli
+          chmod +x screenly
 
           # Install jq for JSON parsing
            sudo apt-get update && sudo apt-get install -y jq
