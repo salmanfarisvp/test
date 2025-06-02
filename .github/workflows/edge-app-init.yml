@@ -82,6 +82,15 @@ jobs:
           API_BASE_URL: ${{ env.API_BASE_URL }}
           APP_ID: ${{ env.APP_ID }}
 
+      - name: 📤 Upload Debug Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: debug-files-${{ inputs.edge_app_name }}-${{ github.run_number }}
+          path: |
+            ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+            ${{ env.APP_PATH }}/**
+
       - name: 🚀 Deploy Edge App
         run: |
           echo "🚀 Deploying Edge App with correct APP_ID"
