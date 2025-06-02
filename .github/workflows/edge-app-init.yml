@@ -31,116 +31,82 @@ jobs:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'production' && 'screenly.yml' || 'screenly_qc.yml' }}
       SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-      API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: master
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ⚙️ Install CLI Binary
+      - name: ⚙️ Install CLI and Dependencies
         run: |
+          # Install Screenly CLI
           wget -q -O screenly-cli.tar.gz https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
           tar -xf screenly-cli.tar.gz
           sudo mv screenly /usr/local/bin/screenly
-          screenly --version
 
-      - name: 📦 Install Dependencies
-        run: |
-          # Install jq (required for JSON parsing)
+          # Install jq for JSON parsing
           sudo apt-get update && sudo apt-get install -y jq
+
+          screenly --version
 
       - name: 🛠 Create Edge App
         run: |
-          echo "📦 Creating app in: $APP_PATH"
+          echo "📦 Creating Edge App from: $APP_PATH"
           screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
+
+          # Get the new APP_ID
           APP_ID=$(grep "^id:" "$APP_PATH/$MANIFEST_FILE_NAME" | awk '{print $2}')
-
-          if [ -z "$APP_ID" ]; then
-            echo "❌ App ID not found in manifest. Aborting."
-            exit 1
-          fi
-
-          echo "✅ App created with ID: $APP_ID"
+          echo "✅ Edge App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
 
       - name: ✍️ Inject App ID into Manifest
         run: |
-          echo "Injecting App ID into: $MANIFEST_FILE_NAME"
-          sed -i "s/id: .*/id: $APP_ID/" "$APP_PATH/$MANIFEST_FILE_NAME"
+          echo "📝 Injecting APP_ID into manifest file: $MANIFEST_FILE_NAME"
+          sed -i "s/^id: .*/id: ${{ env.APP_ID }}/" "$APP_PATH/$MANIFEST_FILE_NAME"
+          echo "✅ APP_ID injected into manifest"
 
-      - name: 🐛 Confirm ID Injection
-        run: cat "$APP_PATH/$MANIFEST_FILE_NAME"
+          # Confirm the injection
+          echo "📄 Updated manifest content:"
+          cat "$APP_PATH/$MANIFEST_FILE_NAME"
 
       - name: 🚀 Deploy Edge App
         run: |
+          echo "🚀 Deploying Edge App with correct APP_ID"
           screenly edge-app deploy --path="$APP_PATH"
+          echo "✅ Edge App deployed successfully"
 
-      - name: 📄 Create Edge App Instance
+      - name: 📄 Create Instance
         run: |
-          echo "📄 Creating Edge App Instance for app: ${{ inputs.edge_app_name }}"
-          # Create instance which generates instance.yml file in current directory
+          echo "📄 Creating instance for Edge App"
           INSTANCE_ID=$(screenly edge-app instance create --path="$APP_PATH" --json | jq -r '.id')
-
-          if [ -z "$INSTANCE_ID" ]; then
-            echo "❌ Failed to create instance. No instance ID returned."
-            exit 1
-          fi
-
+          echo "✅ Instance created with ID: $INSTANCE_ID"
           echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
-          echo "✅ Edge App Instance created with ID: $INSTANCE_ID"
 
-          # Save the complete instance.yml file and update the name
-          if [ -f "instance.yml" ]; then
-            echo "📝 Updating instance name to: ${{ inputs.edge_app_title }}"
-            sed -i "s/^name: .*/name: ${{ inputs.edge_app_title }}/" instance.yml
+          # Update instance name with provided title
+          echo "📝 Updating instance name to: ${{ inputs.edge_app_title }}"
+          awk -v new_name="${{ inputs.edge_app_title }}" '
+            /^name:/ { print "name: " new_name; next }
+            { print }
+          ' instance.yml > instance_tmp.yml && mv instance_tmp.yml instance.yml
 
-            # Save the modified instance.yml file for the update step
-            cp instance.yml /tmp/instance.yml
-            echo "✅ instance.yml file saved with updated name"
-
-            # Show the modified instance.yml content
-            echo "📄 Modified instance.yml content:"
-            cat instance.yml
-          else
-            echo "❌ instance.yml file not found after instance creation"
-            exit 1
-          fi
-
-      - name: 🔁 Update Edge App Instance
+      - name: 🔄 Update Instance
         run: |
-          echo "🔄 Updating Edge App Instance for app: ${{ inputs.edge_app_name }} in ${{ inputs.environment }}"
-          # Copy the saved and modified instance.yml back to current directory for update
-          cp /tmp/instance.yml instance.yml
-          # Update the instance using the modified instance.yml file
+          echo "🔄 Updating instance with new name"
           screenly edge-app instance update --path="$APP_PATH"
-          echo "✅ Edge App Instance updated successfully with name: ${{ inputs.edge_app_title }}"
+          echo "✅ Instance updated successfully"
 
-      - name: 🆔 Print IDs
+      - name: 📋 Log Results
         run: |
+          echo "🆔 RESULTS:"
           echo "✅ Edge App ID: ${{ env.APP_ID }}"
-          echo "✅ Edge App Instance ID: ${{ env.INSTANCE_ID }}"
+          echo "✅ Instance ID: ${{ env.INSTANCE_ID }}"
+          echo "✅ Instance Name: ${{ inputs.edge_app_title }}"
 
-      - name: 💾 Commit Changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-
-          # Check if there are changes to commit
-          git add "$APP_PATH/$MANIFEST_FILE_NAME"
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Initialize Edge App: ${{ inputs.edge_app_name }} with ID ${{ env.APP_ID }}"
-            git push origin master
-            echo "✅ Changes committed and pushed to repository"
-          fi
-
-      - name: 📤 Upload Edge App Artifacts
+      - name: 📤 Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: edge-app-files
-          path: ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+          name: edge-app-files-${{ inputs.edge_app_name }}
+          path: |
+            ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+            instance.yml
