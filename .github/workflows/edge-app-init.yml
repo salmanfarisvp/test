@@ -31,6 +31,7 @@ jobs:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'production' && 'screenly.yml' || 'screenly_qc.yml' }}
       SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
       - name: ⬇️ Checkout Repository
@@ -46,9 +47,19 @@ jobs:
           sudo mv screenly /usr/local/bin/screenly
 
           # Install jq for JSON parsing
-          sudo apt-get update && sudo apt-get install -y jq
+          sudo apt-get install -y jq
 
           screenly --version
+
+      - name: 🔐 Authenticate CLI
+        run: |
+          echo "🔐 Authenticating Screenly CLI"
+          echo "📡 Using API endpoint: $API_BASE_URL"
+          echo "$SCREENLY_API_TOKEN" | screenly login --token
+          echo "✅ CLI authenticated successfully"
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 🛠 Create Edge App
         run: |
@@ -59,6 +70,9 @@ jobs:
           APP_ID=$(grep "^id:" "$APP_PATH/$MANIFEST_FILE_NAME" | awk '{print $2}')
           echo "✅ Edge App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: ✍️ Inject App ID into Manifest
         run: |
@@ -75,6 +89,9 @@ jobs:
           echo "🚀 Deploying Edge App with correct APP_ID"
           screenly edge-app deploy --path="$APP_PATH"
           echo "✅ Edge App deployed successfully"
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 📄 Create Instance
         run: |
@@ -89,12 +106,18 @@ jobs:
             /^name:/ { print "name: " new_name; next }
             { print }
           ' instance.yml > instance_tmp.yml && mv instance_tmp.yml instance.yml
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 🔄 Update Instance
         run: |
           echo "🔄 Updating instance with new name"
           screenly edge-app instance update --path="$APP_PATH"
           echo "✅ Instance updated successfully"
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+          API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 📋 Log Results
         run: |
