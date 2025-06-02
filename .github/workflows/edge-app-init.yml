@@ -59,9 +59,6 @@ jobs:
           APP_ID=$(grep "^id:" "$APP_PATH/$MANIFEST_FILE_NAME" | awk '{print $2}')
           echo "✅ Edge App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          SCREENLY_API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: ✍️ Inject App ID into Manifest
         run: |
@@ -79,9 +76,6 @@ jobs:
           echo "📡 Using API endpoint: $API_BASE_URL"
           screenly edge-app deploy --path="$APP_PATH"
           echo "✅ Edge App deployed successfully"
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          SCREENLY_API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 📄 Create Instance
         run: |
@@ -97,9 +91,6 @@ jobs:
             /^name:/ { print "name: " new_name; next }
             { print }
           ' instance.yml > instance_tmp.yml && mv instance_tmp.yml instance.yml
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          SCREENLY_API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 🔄 Update Instance
         run: |
@@ -107,9 +98,6 @@ jobs:
           echo "📡 Using API endpoint: $API_BASE_URL"
           screenly edge-app instance update --path="$APP_PATH"
           echo "✅ Instance updated successfully"
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-          SCREENLY_API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
       - name: 📋 Log Results
         run: |
