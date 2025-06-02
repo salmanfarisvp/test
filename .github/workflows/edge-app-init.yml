@@ -47,19 +47,25 @@ jobs:
       - name: 🛠 Create Edge App
         run: |
           echo "📦 Creating Edge App from: $APP_PATH"
-          export API_TOKEN=$SCREENLY_API_TOKEN
           ./screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
           APP_ID=$(grep "^id:" "$APP_PATH/$MANIFEST_FILE_NAME" | awk '{print $2}')
           echo "✅ Edge App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+        env:
+          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+
       - name: ✍️ Inject App ID into Manifest
         run: |
           echo "📝 Injecting APP_ID into manifest file: $MANIFEST_FILE_NAME"
-          sed -i "s/^id: .*/id: ${{ env.APP_ID }}/" "$APP_PATH/$MANIFEST_FILE_NAME"
+          echo "APP_ID to inject: $APP_ID"
+          sed -i "s/^id: .*/id: $APP_ID/" "$APP_PATH/$MANIFEST_FILE_NAME"
           echo "✅ APP_ID injected into manifest"
           echo "📄 Updated manifest content:"
           cat "$APP_PATH/$MANIFEST_FILE_NAME"
-
+        env:
+          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: 🚀 Deploy Edge App
         run: |
@@ -67,6 +73,9 @@ jobs:
           export API_TOKEN=$SCREENLY_API_TOKEN
           ./screenly edge-app deploy --path="$APP_PATH"
           echo "✅ Edge App deployed successfully"
+        env:
+          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: 📄 Create Instance
         run: |
@@ -80,6 +89,9 @@ jobs:
             /^name:/ { print "name: " new_name; next }
             { print }
           ' instance.yml > instance_tmp.yml && mv instance_tmp.yml instance.yml
+        env:
+          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: 🔄 Update Instance
         run: |
@@ -87,6 +99,9 @@ jobs:
           export API_TOKEN=$SCREENLY_API_TOKEN
           ./screenly edge-app instance update --path="$APP_PATH"
           echo "✅ Instance updated successfully"
+        env:
+          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+          API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: 📋 Log Results
         run: |
