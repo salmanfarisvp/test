@@ -44,55 +44,14 @@ jobs:
           chmod +x screenly
           ./screenly --version
 
-      - name: 🛠 Create Edge App
+      - name: 🚀 Create and Deploy Edge App
         run: |
           echo "📦 Creating Edge App from: $APP_PATH"
           ./screenly edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="$APP_PATH"
           APP_ID=$(grep "^id:" "$APP_PATH/$MANIFEST_FILE_NAME" | awk '{print $2}')
           echo "✅ Edge App created with ID: $APP_ID"
           echo "APP_ID=$APP_ID" >> $GITHUB_ENV
-        env:
-          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-          API_BASE_URL: ${{ env.API_BASE_URL }}
 
-      # - name: ✍️ Inject App ID into Manifest
-      #   run: |
-      #     echo "📝 Injecting APP_ID into manifest file: $MANIFEST_FILE_NAME"
-      #     echo "APP_ID to inject: $APP_ID"
-      #     echo "📄 BEFORE injection - manifest content:"
-      #     cat "$APP_PATH/$MANIFEST_FILE_NAME"
-
-      #     sed -i "s/^id: .*/id: $APP_ID/" "$APP_PATH/$MANIFEST_FILE_NAME"
-
-      #     echo "✅ APP_ID injected into manifest"
-      #     echo "📄 AFTER injection - manifest content:"
-      #     cat "$APP_PATH/$MANIFEST_FILE_NAME"
-
-      #     # Verify the injection worked
-      #     INJECTED_ID=$(grep "^id:" "$APP_PATH/$MANIFEST_FILE_NAME" | awk '{print $2}')
-      #     echo "🔍 Injected ID verification: $INJECTED_ID"
-      #     if [ "$INJECTED_ID" = "$APP_ID" ]; then
-      #       echo "✅ ID injection successful"
-      #     else
-      #       echo "❌ ID injection failed - Expected: $APP_ID, Got: $INJECTED_ID"
-      #       exit 1
-      #     fi
-      #   env:
-      #     API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-      #     API_BASE_URL: ${{ env.API_BASE_URL }}
-      #     APP_ID: ${{ env.APP_ID }}
-
-      # - name: 📤 Upload Debug Artifacts
-      #   uses: actions/upload-artifact@v4
-      #   if: always()
-      #   with:
-      #     name: debug-files-${{ inputs.edge_app_name }}-${{ github.run_number }}
-      #     path: |
-      #       ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
-      #       ${{ env.APP_PATH }}/**
-
-      - name: 🚀 Deploy Edge App
-        run: |
           echo "🚀 Deploying Edge App with correct APP_ID"
           echo "📄 Final check - manifest content before deploy:"
           cat "$APP_PATH/$MANIFEST_FILE_NAME"
