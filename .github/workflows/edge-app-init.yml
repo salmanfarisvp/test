@@ -66,6 +66,7 @@ jobs:
         env:
           API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
           API_BASE_URL: ${{ env.API_BASE_URL }}
+          APP_ID: ${{ env.APP_ID }}
 
       - name: 🚀 Deploy Edge App
         run: |
