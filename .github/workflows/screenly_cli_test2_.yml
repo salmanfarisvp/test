@@ -26,8 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set timestamp
-        id: timestamp
-        run: echo "timestamp=$(date +%s)" >> "$GITHUB_OUTPUT"
+        id: list-screens
 
       - name: Run `screen list` using screenly/cli@master
         uses: screenly/cli@master
@@ -38,6 +37,7 @@ jobs:
           API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: Run `edge-app list` using screenly/cli@master
+        id: edge-app-list
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
