@@ -1,4 +1,4 @@
-name: List Screens via Screenly CLI v2
+name: List Screens via Screenly CLI
 
 on:
   workflow_dispatch:
@@ -22,15 +22,19 @@ jobs:
       API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
-      - name: Checkout (optional)
-        uses: actions/checkout@v4
-
-      - name: Run `screen list` using screenly/cli@master
-        id: run-screen-list
+      - name: Run `screen list`
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: screen list
+        env:
+          API_BASE_URL: ${{ env.API_BASE_URL }}
+
+      - name: Run `edge-app list`
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app list
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
+
