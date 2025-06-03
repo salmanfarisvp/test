@@ -26,21 +26,31 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run `screen list` using screenly/cli@master
+        id: run-screen-list
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: screen list
-          name: screen-list-${{ github.run_id }}
-          path: /tmp/screen_list.txt
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
 
+      - name: Upload screen list output
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-list-${{ github.run_id }}
+          path: /tmp/screenly_cli_command_output.txt
+
       - name: Run `edge-app list` using screenly/cli@master
+        id: run-edge-app-list
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app list
-          name: edge-app-list-${{ github.run_id }}
-          path: /tmp/edge_app_list.txt
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
+
+      - name: Upload edge app list output
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-app-list-${{ github.run_id }}
+          path: /tmp/screenly_cli_command_output.txt
