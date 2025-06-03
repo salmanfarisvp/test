@@ -44,9 +44,3 @@ jobs:
           cli_commands: edge-app list
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
-
-      - name: Upload CLI output
-        uses: actions/upload-artifact@v4
-        with:
-          name: run-cli-output-${{ steps.timestamp.outputs.timestamp }}
-          path: /tmp/screenly_cli_command_output.txt
