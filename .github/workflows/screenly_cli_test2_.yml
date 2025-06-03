@@ -25,22 +25,22 @@ jobs:
       - name: Checkout (optional)
         uses: actions/checkout@v4
 
-      - name: Set timestamp
-        id: list-screens
-
       - name: Run `screen list` using screenly/cli@master
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: screen list
+          name: screen-list-${{ github.run_id }}
+          path: /tmp/screen_list.txt
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: Run `edge-app list` using screenly/cli@master
-        id: edge-app-list
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app list
+          name: edge-app-list-${{ github.run_id }}
+          path: /tmp/edge_app_list.txt
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
