@@ -1,6 +1,4 @@
 ---
-# Manually deploy any edge app to either the staging (QC) or production environment.
-# Always uses the latest master branch.
 name: Update Edge App
 
 on:
@@ -22,14 +20,16 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'edge-apps/**'
 
-run-name: Updating ${{ inputs.edge_app_name }} to ${{ inputs.environment }}
+run-name: Deploying ${{ inputs.edge_app_name || 'edge app' }} to ${{ inputs.environment || 'stage' }}
 
 jobs:
   deploy:
-    name: Deploy to ${{ inputs.environment == 'stage' && 'Stage' || 'Production' }}
+    name: Deploy to ${{ inputs.environment == 'stage' && 'Staging (QC)' || 'Production' }}
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ inputs.environment || 'stage' }}
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
@@ -41,8 +41,8 @@ jobs:
         with:
           ref: master
 
-      - name: Deploy Edge App
+      - name: Deploy Edge App to ${{ inputs.environment }}
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ secrets.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app deploy --path=${{ env.APP_PATH }} --manifest-file=${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+          cli_commands: edge-app deploy --path="${{ env.APP_PATH }}" --manifest-file="${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}"
