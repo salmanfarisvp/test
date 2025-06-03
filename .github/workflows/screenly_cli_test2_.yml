@@ -27,6 +27,7 @@ jobs:
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: screen list
+          upload_artifacts: false
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
 
@@ -35,6 +36,6 @@ jobs:
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app list
+          upload_artifacts: false
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
-
