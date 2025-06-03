@@ -1,4 +1,4 @@
-name: List Screens via Screenly CLI
+name: List Screens via Screenly CLI v3
 
 on:
   workflow_dispatch:
