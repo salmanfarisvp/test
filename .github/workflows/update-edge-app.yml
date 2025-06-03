@@ -29,7 +29,6 @@ jobs:
     env:
       APP_PATH: edge-apps/${{ inputs.edge_app_name }}
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
-      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
       - name: Checkout master branch
