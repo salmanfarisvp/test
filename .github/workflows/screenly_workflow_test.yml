@@ -26,9 +26,12 @@ jobs:
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: screen list
+          cli_version: 1.0.2
+
 
       - name: Run `edge-app list`
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app list
+          cli_version: 1.0.2
