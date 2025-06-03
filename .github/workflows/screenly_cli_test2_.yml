@@ -25,31 +25,20 @@ jobs:
       - name: Checkout (optional)
         uses: actions/checkout@v4
 
-      - name: Download screenly-cli binary
-        run: |
-          wget -q -O screenly-cli https://github.com/Screenly/cli/releases/download/v1.0.3/screenly-cli-x86_64-unknown-linux-gnu.tar.gz
-          tar -xzf screenly-cli
-          chmod +x screenly
-
-      - name: Run `screen list` and print output
-        run: |
-          echo "📡 Listing screens from: $API_BASE_URL"
-          export API_TOKEN=$SCREENLY_API_TOKEN
-          ./screenly screen list
+      - name: Run `screen list` using screenly/cli@master
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          # yamllint disable-line rule:line-length
+          cli_commands: screen list
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
-          API_TOKEN: ${{ env.SCREENLY_API_TOKEN }}
 
-      - name: Run `screen list` and print output without export API_TOKEN
-        run: |
-          echo "📡 Listing screens from: $API_BASE_URL"
-          export API_TOKEN=$SCREENLY_API_TOKEN
-          ./screenly screen list
-
-      - name: Run `screen edge-app list` and print output without export API_TOKEN
-        run: |
-          echo "📡 Listing screens from: $API_BASE_URL"
-          ./screenly edge-app list
+      - name: Run `edge-app list` using screenly/cli@master
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          # yamllint disable-line rule:line-length
+          cli_commands: edge-app list
         env:
-          API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
           API_BASE_URL: ${{ env.API_BASE_URL }}
