@@ -1,9 +1,15 @@
 name: List Screens and Edge Apps
 
 on:
-  pull_request:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment to list screens'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
 
 jobs:
   first-job:
