@@ -25,10 +25,6 @@ on:
           - html
           - react
 
-  push:
-    branches:
-      - master
-
 run-name: Updating ${{ inputs.edge_app_name }} to ${{ inputs.environment }}
 
 jobs:
