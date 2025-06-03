@@ -22,27 +22,12 @@ jobs:
       API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
 
     steps:
-      - name: Run `screen list`
+      - name: Run both Screenly commands
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: screen list
-        env:
-          API_BASE_URL: ${{ env.API_BASE_URL }}
-
-  list-edge-apps:
-    name: List Edge Apps from ${{ inputs.environment }}
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    env:
-      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
-      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
-
-    steps:
-      - name: Run `edge-app list`
-        uses: screenly/cli@master
-        with:
-          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app list
+          cli_commands: |
+            screen list
+            edge-app list
         env:
           API_BASE_URL: ${{ env.API_BASE_URL }}
