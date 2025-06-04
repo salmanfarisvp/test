@@ -1,0 +1,127 @@
+name: Initialize Edge App v3
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment for initialization'
+        required: true
+        default: 'stage'
+        type: choice
+        options:
+          - stage
+          - production
+
+      edge_app_name:
+        description: 'Folder name of the edge app (under edge-apps/) to initialize'
+        required: true
+
+      edge_app_title:
+        description: 'Display title of the edge app (used in instance.yml)'
+        required: true
+
+jobs:
+  deploy:
+    name: Initializing ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
+      APP_NAME: ${{ inputs.edge_app_name }}
+      APP_PATH: edge-apps/${{ inputs.edge_app_name }}
+      SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
+      MANIFEST_FILE_NAME: ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ✅ Validate Inputs and Environment
+        run: |
+          # Check if API token is available
+          if [ -z "${{ env.SCREENLY_API_TOKEN }}" ]; then
+            echo "❌ SCREENLY_API_TOKEN is not set"
+            exit 1
+          fi
+
+          # Validate app name (no path traversal, special chars, etc.)
+          if [[ "${{ inputs.edge_app_name }}" =~ [^a-zA-Z0-9_-] ]] || [[ "${{ inputs.edge_app_name }}" == *".."* ]]; then
+            echo "❌ Invalid edge_app_name. Only alphanumeric characters, hyphens, and underscores are allowed."
+            exit 1
+          fi
+
+          # Check if the app directory exists
+          if [ ! -d "${{ env.APP_PATH }}" ]; then
+            echo "❌ Directory ${{ env.APP_PATH }} does not exist"
+            exit 1
+          fi
+
+          echo "✅ All validations passed"
+          echo "🎯 Target environment: ${{ inputs.environment }}"
+          echo "📱 App name: ${{ inputs.edge_app_name }}"
+          echo "📂 App path: ${{ env.APP_PATH }}"
+          echo "📄 Manifest file: ${{ env.MANIFEST_FILE_NAME }}"
+
+      - name: 🛠 Create Edge App
+        id: create_app
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app create --name="${{ env.APP_NAME }}" --in-place --path="${{ env.APP_PATH }}"
+
+      - name: 🚀 Deploy Edge App
+        id: deploy_app
+        if: steps.create_app.outcome == 'success'
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app deploy --path="${{ env.APP_PATH }}"
+
+      - name: 📋 Log screenly.yml
+        if: steps.deploy_app.outcome == 'success'
+        run: |
+          echo "📄 Contents of ${{ env.MANIFEST_FILE_NAME }}:"
+          if [ -f "${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}" ]; then
+            cat ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+          else
+            echo "⚠️ ${{ env.MANIFEST_FILE_NAME }} not found"
+          fi
+
+      - name: 📄 Create Instance
+        id: create_instance
+        if: steps.deploy_app.outcome == 'success'
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app instance create --path="${{ env.APP_PATH }}"
+
+      # Only update instance if there's a specific reason (you may want to remove this step entirely)
+      - name: 🔄 Update Instance
+        id: update_instance
+        if: steps.create_instance.outcome == 'success'
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app instance update --path="${{ env.APP_PATH }}"
+
+      - name: 📋 Log instance.yml
+        if: steps.create_instance.outcome == 'success'
+        run: |
+          echo "📄 Contents of instance.yml:"
+          if [ -f "${{ env.APP_PATH }}/instance.yml" ]; then
+            cat ${{ env.APP_PATH }}/instance.yml
+          else
+            echo "⚠️ instance.yml not found"
+          fi
+
+      - name: ✅ Deployment Summary
+        if: always()
+        run: |
+          echo "## 📊 Deployment Summary"
+          echo "- Environment: ${{ inputs.environment }}"
+          echo "- App Name: ${{ inputs.edge_app_name }}"
+          echo "- App Title: ${{ inputs.edge_app_title }}"
+          echo "- Create App: ${{ steps.create_app.outcome }}"
+          echo "- Deploy App: ${{ steps.deploy_app.outcome }}"
+          echo "- Create Instance: ${{ steps.create_instance.outcome }}"
+          echo "- Update Instance: ${{ steps.update_instance.outcome }}"
