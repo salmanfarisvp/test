@@ -1,6 +1,5 @@
 ---
 syntax: manifest_v1
-id:
 entrypoint:
   type: file
 settings:
