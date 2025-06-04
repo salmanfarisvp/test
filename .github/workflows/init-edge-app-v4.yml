@@ -1,4 +1,4 @@
-name: Initialize Edge App v3
+name: Initialize Edge App v4
 
 on:
   workflow_dispatch:
