@@ -59,14 +59,14 @@ jobs:
         working-directory: ${{ env.APP_PATH }}
         run: npm run build
 
-      - name: Deploy HTML App
+      - name: Deploy HTML Edge App
         if: ${{ inputs.app_type == 'html' }}
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path=${{ env.APP_PATH }}
 
-      - name: Deploy React App
+      - name: Deploy React Edge App
         if: ${{ inputs.app_type == 'react' }}
         uses: screenly/cli@master
         with:
