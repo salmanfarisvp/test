@@ -1,6 +1,6 @@
 ---
 syntax: manifest_v1
-id: 01JWV0GQH6VY24GQ1EBZQBTBA3
+id:
 entrypoint:
   type: file
 settings:
