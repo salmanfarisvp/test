@@ -1,4 +1,4 @@
-name: Initialize and Update Edge App
+name: Initialize Edge App v5
 
 on:
   workflow_dispatch:
