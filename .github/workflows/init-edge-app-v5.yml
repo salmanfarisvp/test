@@ -58,8 +58,6 @@ jobs:
         if: ${{ inputs.app_type == 'react' }}
         working-directory: ${{ env.APP_PATH }}
         run: |
-          rm -rf node_modules package-lock.json
-          npm cache clean --force
           npm install
 
       - name: 🛠 Build React App
