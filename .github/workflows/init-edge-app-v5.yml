@@ -94,7 +94,7 @@ jobs:
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path=${{ env.APP_PATH }}/dist
-         env:
+        env:
           APP_PATH: edge-apps/${{ inputs.edge_app_name }}/dist
 
       - name: 📋 Log manifest file
@@ -114,9 +114,8 @@ jobs:
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app instance create --path=${{ env.APP_PATH }}/dist
-         env:
+        env:
           APP_PATH: edge-apps/${{ inputs.edge_app_name }}/dist
-
 
       - name: 🔄 Update Instance
         if: ${{ inputs.app_type == 'html' }}
@@ -131,7 +130,7 @@ jobs:
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app instance update --path=${{ env.APP_PATH }}/dist
-         env:
+        env:
           APP_PATH: edge-apps/${{ inputs.edge_app_name }}/dist
 
       - name: 📋 Log instance.yml
@@ -143,5 +142,5 @@ jobs:
         if: ${{ inputs.app_type == 'react' }}
         run: |
           cat ${{ env.APP_PATH }}/dist/instance.yml
-         env:
+        env:
           APP_PATH: edge-apps/${{ inputs.edge_app_name }}/dist
