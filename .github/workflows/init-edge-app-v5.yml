@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
-      APP_PATH: ${{ inputs.app_type == 'react' && 'edge-apps/${{ inputs.edge_app_name }}/dist' || 'edge-apps/${{ inputs.edge_app_name }}' }}
+      APP_PATH: edge-apps/${{ inputs.edge_app_name }}
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
       SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
       API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com/' || 'https://api.screenlyapp.com/' }}
@@ -77,7 +77,7 @@ jobs:
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path="${{ env.APP_PATH }}"
+          cli_commands: edge-app create --name="${{ inputs.edge_app_name }}" --in-place --path=${{ env.APP_PATH }}/dist
 
       - name: 🚀 Deploy HTML Edge App
         if: ${{ inputs.app_type == 'html' }}
@@ -91,7 +91,7 @@ jobs:
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app deploy --path="${{ env.APP_PATH }}"
+          cli_commands: edge-app deploy --path=${{ env.APP_PATH }}/dist
 
       - name: 📋 Log manifest file
         run: |
@@ -109,7 +109,7 @@ jobs:
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app instance create --path="${{ env.APP_PATH }}"
+          cli_commands: edge-app instance create --path=${{ env.APP_PATH }}/dist
 
 
       - name: 🔄 Update Instance
@@ -124,9 +124,14 @@ jobs:
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app instance update --path="${{ env.APP_PATH }}"
-
+          cli_commands: edge-app instance update --path=${{ env.APP_PATH }}/dist
 
       - name: 📋 Log instance.yml
+        if: ${{ inputs.app_type == 'html' }}
         run: |
           cat ${{ env.APP_PATH }}/instance.yml
+
+      - name: 📋 Log instance.yml
+        if: ${{ inputs.app_type == 'react' }}
+        run: |
+          cat ${{ env.APP_PATH }}/dist/instance.yml
