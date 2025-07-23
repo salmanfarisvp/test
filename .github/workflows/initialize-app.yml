@@ -1,12 +1,12 @@
 ---
 
-name: Update Edge App
+name: Initialize Edge App
 
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to update edge app (stage or production)'
+        description: 'Target environment for initialization'
         required: true
         default: 'stage'
         type: choice
@@ -15,7 +15,11 @@ on:
           - production
 
       edge_app_name:
-        description: 'Folder name of the edge app (under edge-apps/)'
+        description: 'Folder name of the edge app (under edge-apps/) to initialize'
+        required: true
+
+      edge_app_title:
+        description: 'Display title of the edge app (used in instance.yml)'
         required: true
 
       build_system:
@@ -27,11 +31,12 @@ on:
           - vanilla
           - bun
 
-run-name: Updating ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
+run-name: Initializing ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
+
 
 jobs:
   deploy:
-    name: Updating ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
+    name: Initializing ${{ inputs.edge_app_name }} in ${{ inputs.environment }}
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     environment: ${{ inputs.environment }}
@@ -43,10 +48,8 @@ jobs:
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
 
     steps:
-      - name: ⬇️  Checkout master branch
+      - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: master
 
       - name: 🛠 Install Bun (React/Vue only)
         if: ${{ inputs.build_system == 'bun' }}
@@ -67,8 +70,34 @@ jobs:
             echo "APP_PATH=${{ env.APP_PATH }}/dist" >> "$GITHUB_ENV"
           fi
 
+      - name: 🛠 Create Edge App
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app create --name="${{ env.APP_NAME }}" --in-place --path="${{ env.APP_PATH }}"
+
       - name: 🚀 Deploy Edge App
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
           cli_commands: edge-app deploy --path="${{ env.APP_PATH }}"
+
+      - name: 📋 Log screenly.yml
+        run: |
+          cat ${{ env.APP_PATH }}/${{ env.MANIFEST_FILE_NAME }}
+
+      - name: 📄 Create Instance
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app instance create --path="${{ env.APP_PATH }}" --name="${{ inputs.edge_app_title }}"
+
+      - name: 🔄 Update Instance
+        uses: screenly/cli@master
+        with:
+          screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
+          cli_commands: edge-app instance update --path="${{ env.APP_PATH }}"
+
+      - name: 📋 Log instance.yml
+        run: |
+          cat ${{ env.APP_PATH }}/instance.yml
