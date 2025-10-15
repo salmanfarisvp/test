@@ -9,7 +9,7 @@ on:
         required: true
         default: "stage"
         type: choice
-        options:
+        options: 
           - stage
           - production
 
