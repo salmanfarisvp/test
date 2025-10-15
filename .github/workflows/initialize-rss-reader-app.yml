@@ -1,5 +1,5 @@
 ---
-name: Initialize Custom RSS Reader
+name: Initialize Custom RSS Reader App
 
 on:
   workflow_dispatch:
@@ -52,7 +52,7 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       API_BASE_URL: ${{ inputs.environment == 'stage' && 'https://api.screenlyappstage.com' || 'https://api.screenlyapp.com' }}
-      APP_NAME: rss-reader
+      APP_NAME: ${{ inputs.instance_title }}
       APP_PATH: edge-apps/rss-reader
       SCREENLY_API_TOKEN: ${{ secrets.SCREENLY_API_TOKEN }}
       MANIFEST_FILE_NAME: ${{ inputs.environment == 'stage' && 'screenly_qc.yml' || 'screenly.yml' }}
@@ -126,7 +126,7 @@ jobs:
         uses: screenly/cli@master
         with:
           screenly_api_token: ${{ env.SCREENLY_API_TOKEN }}
-          cli_commands: edge-app instance update --path="${{ env.APP_PATH }}" --name="${{ inputs.instance_title }}"
+          cli_commands: edge-app instance update --path="${{ env.APP_PATH }}"
 
       - name: 📋 Log instance.yml
         run: |
