@@ -35,6 +35,14 @@ apps:
     icon_url: "https://playground.srly.io/edge-apps/rss-reader/static/img/icon.svg"
     rss_url: "https://www.ndtv.com/rss/india"
     rss_title: "NDTV News"
+
+  tech-crunch:
+    id: "01K7M6HEMRQ6B9K4FW0VZXT99T"
+    app_name: "Tech Crunch"
+    description: "Latest technology news from TechCrunch"
+    icon_url: "https://raw.githubusercontent.com/salmanfarisvp/test/refs/heads/master/edge-apps/helpers/rss-reader-app/app-icon/techcrunch.png"
+    rss_url: "https://techcrunch.com/feed/"
+    rss_title: "TechCrunch"
   
   # Add your custom RSS apps below:
   # techcrunch-tech:
