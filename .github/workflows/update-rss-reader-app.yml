@@ -77,18 +77,19 @@ jobs:
               exit 1
             fi
             
-            # Create single-item matrix
-            MATRIX=$(yq -o=json '.apps | to_entries | map(select(.key == "'"$APP_KEY_INPUT"'") | {"key": .key, "id": .value.id})' "$CONFIG_FILE")
+            # Create single-item matrix (compact JSON on single line)
+            MATRIX=$(yq -o=json -I=0 '.apps | to_entries | map(select(.key == "'"$APP_KEY_INPUT"'") | {"key": .key, "id": .value.id})' "$CONFIG_FILE")
             APP_COUNT=1
           else
             # All apps update
             echo "🚀 All apps mode"
             
-            # Extract all app keys and IDs into a JSON array
-            MATRIX=$(yq -o=json '.apps | to_entries | map({"key": .key, "id": .value.id})' "$CONFIG_FILE")
+            # Extract all app keys and IDs into a JSON array (compact JSON on single line)
+            MATRIX=$(yq -o=json -I=0 '.apps | to_entries | map({"key": .key, "id": .value.id})' "$CONFIG_FILE")
             APP_COUNT=$(echo "$MATRIX" | yq 'length')
           fi
           
+          # Output matrix as compact JSON
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "app_count=$APP_COUNT" >> $GITHUB_OUTPUT
           
