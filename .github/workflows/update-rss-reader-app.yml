@@ -133,7 +133,7 @@ jobs:
       - name: 🛠 Install yq
         run: |
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.48.1/yq_linux_amd64
-          echo "85d381d8ab3efd19faadb668628e0876c1004d01299d655df54848380c892390  /usr/local/bin/yq" | sha256sum -c -
+          echo "99df6047f5b577a9d25f969f7c3823ada3488de2e2115b30a0abb10d9324fd9f  /usr/local/bin/yq" | sha256sum -c -
           sudo chmod +x /usr/local/bin/yq
           yq --version
 
