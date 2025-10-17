@@ -1,55 +1,24 @@
-# Deployed Custom RSS Reader Apps Configuration
-#
-# This file tracks all deployed custom RSS reader apps and their configurations.
-# The Update RSS Reader workflow uses this file to load app settings.
-#
-# How to use:
-# 1. After initializing a new RSS app, add its details here
-# 2. When updating, just provide the app_key - all settings will be loaded from here
-# 3. You can still override individual settings when running the update workflow
+# Deployed RSS Reader Apps
 #
 # Format:
 # apps:
-#   unique-app-key:              # Use kebab-case, e.g., "bbc-news" or "techcrunch-tech"
-#     id: "APP_ID"               # The Screenly-generated App ID (from initialize workflow logs)
-#     app_name: "Short Name"     # Short app name (used for instance title)
-#     description: "Description" # Longer app description (used in manifest)
-#     icon_url: "https://..."    # Publicly accessible icon URL
-#     rss_url: "https://..."     # RSS feed URL
-#     rss_title: "Feed Title"    # Title to display in the RSS app
+#   app-key:
+#     app_name: "Instance Title"
+#     description: "Manifest Description"
+#     rss_title: "UI Title"
+#     icon_url: "https://..."
+#     rss_url: "https://..."
+#     ids:
+#       stage: "STAGE_APP_ID"
+#       production: "PROD_APP_ID"
 
 apps:
-  # Example: BBC News RSS Reader
-  toi-new:
-    id: "01K7M3JVGZ3D3KWMZEZ298SDC9"
-    app_name: "TOI News"
-    description: "Latest news from TOI"
-    icon_url: "https://playground.srly.io/edge-apps/rss-reader/static/img/icon.svg"
-    rss_url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
-    rss_title: "TOI News"
-
-  ndtv-news:
-    id: "01K7KXP2CEFRZWNFD2CD1078JK"
-    app_name: "NDTV News"
-    description: "Latest news from NDTV"
-    icon_url: "https://playground.srly.io/edge-apps/rss-reader/static/img/icon.svg"
-    rss_url: "https://www.ndtv.com/rss/india"
-    rss_title: "NDTV News"
-
-  tech-crunch:
-    id: "01K7M6HEMRQ6B9K4FW0VZXT99T"
-    app_name: "Tech Crunch"
-    description: "Latest technology news from TechCrunch"
-    icon_url: "https://raw.githubusercontent.com/salmanfarisvp/test/refs/heads/master/edge-apps/helpers/rss-reader-app/app-icon/techcrunch.png"
-    rss_url: "https://techcrunch.com/feed/"
-    rss_title: "TechCrunch"
-  
-  # Add your custom RSS apps below:
-  # techcrunch-tech:
-  #   id: "YOUR_APP_ID_HERE"
-  #   app_name: "TechCrunch"
-  #   description: "Latest technology news from TechCrunch"
-  #   icon_url: "https://example.com/techcrunch-icon.svg"
-  #   rss_url: "https://techcrunch.com/feed/"
-  #   rss_title: "TechCrunch"
-
+  nytimes:
+    app_name: 'New York Times'
+    description: 'Latest news from New York Times'
+    rss_title: 'New York Times'
+    icon_url: 'https://raw.githubusercontent.com/salmanfarisvp/test/refs/heads/master/edge-apps/helpers/rss-reader-app/app-icon/the-newyork-times.png'
+    rss_url: 'https://rss.nytimes.com/services/xml/rss/nyt/US.xml'
+    ids:
+      stage: '01K7RGA26DD339H491EGH83BEF'
+      production: '01K7RGGCB9MSNC3HZ78D7DB8YK'
