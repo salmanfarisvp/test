@@ -22,3 +22,12 @@ apps:
     ids:
       stage: '01K7RGA26DD339H491EGH83BEF'
       production: '01K7RGGCB9MSNC3HZ78D7DB8YK'
+  bbc-news:
+    app_name: 'BBC News'
+    description: 'Latest news from BBC News'
+    rss_title: 'BBC News'
+    icon_url: 'https://raw.githubusercontent.com/salmanfarisvp/test/refs/heads/master/edge-apps/helpers/rss-reader-app/app-icon/bbc-news.png'
+    rss_url: 'http://feeds.bbci.co.uk/news/rss.xml'
+    ids:
+      stage: '01K7RRXWJKGNNRZGBYGWWFZM9Y'
+      production: '01K7RS06PT9RC0ZAVBJ7REGW9D'
