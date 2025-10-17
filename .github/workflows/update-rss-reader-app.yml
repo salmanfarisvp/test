@@ -1,5 +1,5 @@
 ---
-name: Update Edge App
+name: Update Custom RSS Reader App
 
 on:
   workflow_dispatch:
